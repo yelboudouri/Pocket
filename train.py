@@ -163,7 +163,7 @@ class Trainer:
 
 
 def get_args():
-    parser = argparse.ArgumentParser(description="Train Pocket: a casual language model")
+    parser = argparse.ArgumentParser(description="Train Pocket")
 
     parser.add_argument("--dataset-path", type=str,
                         help="Path to the directory containing text files, each file representing a story.")
