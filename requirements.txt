@@ -1,0 +1,7 @@
+wandb
+torchinfo
+torch
+tokenizers
+tqdm
+numpy
+matplotlib
