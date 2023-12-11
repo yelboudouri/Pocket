@@ -52,8 +52,7 @@ class Trainer:
         logging.info(f"Stories used for evaluation: {n_val}")
 
         if n_val < batch_size or n_train < batch_size:
-            logging.error("Subset (train and val) should be bigger batch_size.")
-            exit(12)
+            raise ValueError("Subsets (train and val) size must be bigger then batch_size.")
 
         self.train_dataloader = DataLoader(train_set, batch_size=batch_size, shuffle=True,
                                            num_workers=cpu_count(), drop_last=True, pin_memory=True,
@@ -74,7 +73,7 @@ class Trainer:
             self.load(checkpoint)
 
     def train(self):
-        model.train()
+        self.model.train()
 
         eval_loss = None
         perplexity = None
@@ -83,11 +82,11 @@ class Trainer:
         for step in range(self.training_steps):
             inputs, targets = next(self.train_dataloader)
 
-            inputs = inputs.to(device)
-            targets = targets.to(device)
+            inputs = inputs.to(self.device)
+            targets = targets.to(self.device)
 
-            with torch.autocast(device_type=device, enabled=self.use_amp):
-                _, loss = model(inputs, targets)
+            with torch.autocast(device_type=self.device, enabled=self.use_amp):
+                _, loss = self.model(inputs, targets)
 
             self.optimizer.zero_grad(set_to_none=True)
             self.scaler.scale(loss).backward()
@@ -119,31 +118,29 @@ class Trainer:
         logging.info("Training finished!")
 
     def eval(self):
-        model.eval()
-
-        model.eval()
+        self.model.eval()
         total_loss = 0.0
 
         for step in range(self.evaluating_steps):
             inputs, targets = next(self.val_dataloader)
 
-            inputs = inputs.to(device)
-            targets = targets.to(device)
+            inputs = inputs.to(self.device)
+            targets = targets.to(self.device)
 
             with torch.no_grad():
-                logits, loss = model(inputs, targets)
+                logits, loss = self.model(inputs, targets)
 
             total_loss += loss.item()
 
         average_loss = total_loss / self.evaluating_steps
         perplexity = torch.exp(torch.tensor(average_loss))
 
-        model.train()
+        self.model.train()
         return average_loss, perplexity.item()
 
     def save(self, step):
         dt = {
-            'model': model.state_dict(),
+            'model': self.model.state_dict(),
             'opt': self.optimizer.state_dict(),
             'scheduler': self.scheduler.state_dict(),
             "scaler": self.scaler.state_dict(),

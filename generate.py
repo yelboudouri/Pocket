@@ -44,7 +44,7 @@ class Generator:
         while True:
             with torch.no_grad():
                 generated_ids[0][token_index] = self.mask_token
-                logits = model(generated_ids)
+                logits = self.model(generated_ids)
                 logits /= self.temperature
                 filtered_logits = top_k_top_p_filtering(logits, self.top_k, self.top_p)
                 # Sample from the probability distribution
