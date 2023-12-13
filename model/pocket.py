@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.nn import LayerNorm
 
 
 class Embeddings(nn.Module):
@@ -38,10 +37,17 @@ class Pocket(nn.Module):
         self.pad_id = config.pad_id
         self.mask_id = config.mask_id
 
-        self.embeddings = Embeddings(config.vocab_size, config.d_model, config.n_positions, config.embd_pdrop, self.pad_id)
+        self.embeddings = Embeddings(
+            vocab_size=config.vocab_size,
+            hidden_size=config.d_model,
+            max_position_embeddings=config.n_positions,
+            dropout=config.embd_pdrop,
+            pad_token_id=self.pad_id
+        )
 
-        encoder_layers = nn.TransformerEncoderLayer(config.d_model, config.nhead, config.d_hid, config.resid_pdrop, batch_first=True)
-        encoder_norm = LayerNorm(config.d_model)
+        encoder_layers = nn.TransformerEncoderLayer(config.d_model, config.nhead, config.d_hid,
+                                                    config.resid_pdrop, batch_first=True)
+        encoder_norm = nn.LayerNorm(config.d_model)
         self.transformer_encoder = nn.TransformerEncoder(encoder_layers, config.nlayers, encoder_norm)
 
         self.linear = nn.Linear(config.d_model, config.vocab_size, bias=False)

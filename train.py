@@ -18,7 +18,6 @@ from utils.dataset import StoriesDataset
 from utils.scheduler import CosineAnnealingWithWarmRestartsLR
 from utils.utils import load_data, train_tokenizer, cycle, dynamic_batching
 
-
 logging.root.setLevel(logging.INFO)
 logging.basicConfig(format='%(levelname)s: %(message)s')
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
@@ -71,6 +70,8 @@ class Trainer:
 
         if checkpoint is not None:
             self.load(checkpoint)
+
+        wandb.init(project="Pocket", anonymous='must', resume="allow")
 
     def train(self):
         self.model.train()
@@ -183,8 +184,6 @@ if __name__ == '__main__':
 
     output_directory = Path(args.output_dir)
     output_directory.mkdir(exist_ok=True)
-
-    wandb.init(project="Pocket", anonymous='must', resume="allow")
 
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     logging.info(f"Device used: {device}")
