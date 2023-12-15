@@ -107,7 +107,7 @@ class Trainer:
             pbar.update(1)
 
             if step % 50 == 0:
-                eval_loss, perplexity = self.eval()
+                eval_loss, perplexity = self.val()
                 wandb.log({
                     'Train Loss': loss.item(),
                     'Eval Loss': eval_loss,
@@ -118,7 +118,8 @@ class Trainer:
         pbar.close()
         logging.info("Training finished!")
 
-    def eval(self):
+    @torch.no_grad()
+    def val(self):
         self.model.eval()
         total_loss = 0.0
 
@@ -128,8 +129,7 @@ class Trainer:
             inputs = inputs.to(self.device)
             targets = targets.to(self.device)
 
-            with torch.no_grad():
-                logits, loss = self.model(inputs, targets)
+            logits, loss = self.model(inputs, targets)
 
             total_loss += loss.item()
 
